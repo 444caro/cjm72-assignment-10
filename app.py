@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, request, redirect, url_for
 import os
 import torch
 import torchvision.transforms as transforms
@@ -125,7 +125,7 @@ def index():
             error = str(e)
 
     return render_template("index.html", results=results, error=error, use_pca=False)
-  
+
 
 if __name__ == "__main__":
     app.run(debug=True)

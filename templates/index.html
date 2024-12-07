@@ -9,7 +9,7 @@
 <body>
     <h1>Image Search</h1>
     <div class="form-container">
-        <form id="search-form" enctype="multipart/form-data">
+        <form id="search-form" method = "POST" enctype="multipart/form-data">
             <div class="input-group">
                 <label for="query_type">Query Type:</label>
                 <select id="query_type" name="query_type">
@@ -24,7 +24,7 @@
             </div>
             <div class="input-group" id="image-query-group" style="display: none;">
                 <label for="image_query">Image Query:</label>
-                <input type="file" id="image_query" name="image_query" accept="image/*">
+                <input type="file" id="image_query" name="image_file" accept="image/*">
             </div>
             <div class="input-group" id="weight-group" style="display: none;">
                 <label for="weight">Text Weight (0.0 - 1.0):</label>
@@ -48,6 +48,9 @@
         <h2>Results</h2>
         <div id="image-results"></div>
     </div>
+    {% if error %}
+        <div class="error">{{ error }}</div>
+    {% endif %}
 
     <script>
         document.getElementById("query_type").addEventListener("change", function () {
