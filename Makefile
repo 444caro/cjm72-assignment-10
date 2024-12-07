@@ -3,20 +3,20 @@ APP_FILE := app.py
 REQUIREMENTS := requirements.txt
 UPLOADS_DIR := static/uploads
 
-.PHONY: all create_env install_deps run clean
+.PHONY: all create install run clean
 
 all: run
 
-create_env:
+create:
 	@echo "Creating virtual environment..."
 	@test -d $(ENV_NAME) || python3 -m venv $(ENV_NAME)
 
-install_deps: create_env
+install: create
 	@echo "Installing dependencies..."
 	@$(ENV_NAME)/bin/pip install --upgrade pip
 	@$(ENV_NAME)/bin/pip install -r $(REQUIREMENTS)
 
-run: install_deps
+run: install
 	@echo "Starting Flask app..."
 	@$(ENV_NAME)/bin/python $(APP_FILE)
 
