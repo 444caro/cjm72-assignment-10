@@ -1,1 +1,3 @@
 flask_env/
+image_embeddings.pickle/
+coco_images_resized/
