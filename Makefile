@@ -3,7 +3,6 @@ APP_FILE := app.py
 REQUIREMENTS := requirements.txt
 UPLOADS_DIR := static/uploads
 
-.PHONY: all create install run clean
 
 all: run
 
