@@ -50,18 +50,19 @@
     </div>
 
     <script>
-        document
-          .getElementById("query_type")
-          .addEventListener("change", function () {
+        document.getElementById("query_type").addEventListener("change", function () {
             const queryType = this.value;
-            document.getElementById("text_query_div").style.display =
-              queryType === "text" || queryType === "hybrid" ? "block" : "none";
-            document.getElementById("image_query_div").style.display =
-              queryType === "image" || queryType === "hybrid" ? "block" : "none";
-            document.getElementById("weight_div").style.display =
-              queryType === "hybrid" ? "block" : "none";
-          });
-      </script>
-      
+            document.getElementById("text-query-group").style.display =
+                queryType === "text" || queryType === "hybrid" ? "block" : "none";
+            document.getElementById("image-query-group").style.display =
+                queryType === "image" || queryType === "hybrid" ? "block" : "none";
+            document.getElementById("weight-group").style.display =
+                queryType === "hybrid" ? "block" : "none";
+            document.getElementById("pca-group").style.display =
+                queryType === "image" ? "block" : "none";
+            document.getElementById("pca-k-group").style.display =
+                queryType === "image" ? "block" : "none";
+        });
+    </script>
 </body>
 </html>
