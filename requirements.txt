@@ -4,3 +4,5 @@ torchvision
 open-clip-torch
 pandas
 pillow
+scikit-learn>=1.0
+matplotlib
