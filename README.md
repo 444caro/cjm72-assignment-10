@@ -1,5 +1,10 @@
 # Assignment 10: Image Search
 --------------------
+**Demo Video:** https://youtu.be/jQajtgPoXCQ
+
+
+please add coco_images_resized to static folder to reproduce results
+
 
 **Goal:** Implement a simplified version of Google Image Search.
 
