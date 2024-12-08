@@ -3,17 +3,21 @@ import os
 import torch
 import torchvision.transforms as transforms
 from PIL import Image
-from open_clip import create_model_and_transforms, tokenizer
+from open_clip import create_model_and_transforms, tokenize
 import torch.nn.functional as F
 import pandas as pd
 from tqdm import tqdm
 from sklearn.decomposition import PCA
 import numpy as np
+from flask import send_from_directory
+
 
 # # flask setup
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = './static/uploads/'
+app.config['OUTPUT_FOLDER'] = './static/outputs/'
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+os.makedirs(app.config['OUTPUT_FOLDER'], exist_ok=True)
 
 # # Configuration
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -34,6 +38,7 @@ embeddings = np.stack(df['embedding'].values)  # Extract embeddings for PCA or o
 pca_components = 50  # Default number of principal components
 pca = PCA(n_components=pca_components)
 pca_embeddings = pca.fit_transform(embeddings)  # Generate PCA-transformed embeddings
+print(f"PCA embeddings shape: {pca_embeddings.shape}")
 
 
 # # DataFrame to store results
@@ -51,10 +56,21 @@ def load_image(file_path):
         return None
 
 def search_top_k_similar(query_embedding, embeddings, top_k=5):
-  """Search for the top K similar items."""
-  cos_sim = F.cosine_similarity(torch.tensor(embeddings).to(device), query_embedding.unsqueeze(0))
-  top_k_indices = torch.topk(cos_sim, top_k).indices.cpu().numpy()
-  return df.iloc[top_k_indices], cos_sim[top_k_indices].tolist()
+    """Search for the top K similar items."""
+    print(f"Shape of query_embedding: {query_embedding.shape}")
+    print(f"Shape of embeddings: {torch.tensor(embeddings).shape}")
+
+    # Compute cosine similarity correctly
+    cos_sim = F.cosine_similarity(
+        torch.tensor(embeddings).to(device),  # (82783, 512)
+        query_embedding,                     # (1, 512)
+        dim=1                                # Compare along feature axis
+    )
+
+    print(f"Shape of cos_sim: {cos_sim.shape}")
+    top_k_indices = torch.topk(cos_sim, top_k).indices.cpu().numpy()
+    return df.iloc[top_k_indices], cos_sim[top_k_indices].tolist()
+
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -64,35 +80,31 @@ def index():
 
     if request.method == "POST":
         query_type = request.form.get("query_type")
-        use_pca = request.form.get("use_pca") == "on"
         embeddings = np.stack(df['embedding'].values)
         top_k = 5
 
         try:
-            # Select embeddings based on PCA toggle
-            search_embeddings = pca_embeddings if use_pca else embeddings
-
             if query_type == "text":
                 text_query = request.form.get("text_query")
                 if not text_query:
-                    error = "Text query is empty."
+                    error = "Text query is empty"
                 else:
-                    tokenized_text = tokenizer([text_query])
+                    tokenized_text = tokenize([text_query])
                     text_embedding = F.normalize(model.encode_text(tokenized_text.to(device)), dim=-1)
-                    results, similarities = search_top_k_similar(text_embedding, search_embeddings, top_k)
+                    results, similarities = search_top_k_similar(text_embedding, embeddings, top_k)
 
             elif query_type == "image":
                 image_file = request.files.get("image_file")
                 if not image_file:
-                    error = "No image uploaded."
+                    error = "No image uploaded"
                 else:
                     file_path = os.path.join(app.config['UPLOAD_FOLDER'], image_file.filename)
                     image_file.save(file_path)
                     image_embedding = load_image(file_path)
                     if image_embedding is None:
-                        error = "Image processing failed."
+                        error = "Failed to process image"
                     else:
-                        results, similarities = search_top_k_similar(image_embedding, search_embeddings, top_k)
+                        results, similarities = search_top_k_similar(image_embedding, embeddings, top_k)
 
             elif query_type == "hybrid":
                 text_query = request.form.get("text_query")
@@ -100,31 +112,30 @@ def index():
                 lam = float(request.form.get("weight", 0.5))
 
                 if not text_query or not image_file:
-                    error = "Both image and text are required for a hybrid query."
+                    error = "Both image and text are required for hybrid query"
                 else:
-                    tokenized_text = tokenizer([text_query])
+                    tokenized_text = tokenize([text_query])
                     text_embedding = F.normalize(model.encode_text(tokenized_text.to(device)), dim=-1)
 
                     file_path = os.path.join(app.config['UPLOAD_FOLDER'], image_file.filename)
                     image_file.save(file_path)
                     image_embedding = load_image(file_path)
                     if image_embedding is None:
-                        error = "Failed to process image."
+                        error = "Failed to process image"
                     else:
                         hybrid_query = F.normalize(lam * text_embedding + (1 - lam) * image_embedding, dim=-1)
-                        results, similarities = search_top_k_similar(hybrid_query, search_embeddings, top_k)
-
-            if results and not error:
+                        results, similarities = search_top_k_similar(hybrid_query, embeddings, top_k)
+            if results is not None and not error:
                 result_images = [
                     {"file_name": row.file_name, "similarity": sim}
                     for (_, row), sim in zip(results.iterrows(), similarities)
                 ]
-                return render_template("index.html", results=result_images, use_pca=use_pca)
+                return render_template("index.html", results=result_images)
 
         except Exception as e:
             error = str(e)
 
-    return render_template("index.html", results=results, error=error, use_pca=False)
+    return render_template("index.html", results=results, error=error)
 
 
 if __name__ == "__main__":

@@ -44,13 +44,22 @@
             <button type="submit">Search</button>
         </form>
     </div>
-    <div id="results" style="display: none;">
+    <div id="results" style="display: block;">
         <h2>Results</h2>
-        <div id="image-results"></div>
+        <div id="image-results">
+            {% for result in results %}
+                <div class="result-item">
+                    <img src="{{ url_for('static', filename='coco_images_resized/' + result['file_name']) }}" alt="{{ result['file_name'] }}" />
+                    <p>File Name: {{ result.file_name }}</p>
+                    <p>Similarity: {{ result.similarity }}</p>
+                </div>
+            {% endfor %}
+        </div>
     </div>
     {% if error %}
         <div class="error">{{ error }}</div>
     {% endif %}
+
 
     <script>
         document.getElementById("query_type").addEventListener("change", function () {
