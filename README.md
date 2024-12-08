@@ -3,7 +3,7 @@
 **Demo Video:** https://youtu.be/jQajtgPoXCQ
 
 
-please add coco_images_resized to static folder to reproduce results
+please add coco_images_resized to static folder and image_embeddings.pickle in working directory to reproduce results
 
 
 **Goal:** Implement a simplified version of Google Image Search.
