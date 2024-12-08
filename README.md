@@ -1,7 +1,11 @@
 # Assignment 10: Image Search
 --------------------
 **Demo Video:** https://youtu.be/jQajtgPoXCQ
+
+
 please add coco_images_resized to static folder to reproduce results
+
+
 **Goal:** Implement a simplified version of Google Image Search.
 
 This is a GUI assignment. Please set up a GitHub repo like previous assignments. There is no GUI template, but we encourage you to reuse code from earlier homeworks.
